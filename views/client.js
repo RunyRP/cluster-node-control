@@ -2,56 +2,42 @@ const headers = {
     "Content-Type": "application/json",
     Accept: "application/json",
 };
-let data = {};
+let fetchInterval = 2000;
 const socket = new WebSocket("ws://192.168.0.167:8080");
 socket.addEventListener("open", function (event) {
+    intervalFetch();
+});
+function intervalFetch() {
     setInterval(() => {
         fetch("http://192.168.0.167:3000/data")
             .then((response) => response.json())
-            .then((json) => data_function(json));
-        // console.log(`Client ${data.id} - ${data.ipv4} connected!`);
-        // .then((data) => {
+            .then((json) => {
+                data_function(json);
+            });
+    }, fetchInterval);
+}
 
-        // const newLI = document.createElement("LI");
-        // newLI.innerText = `${data.id} - ${data.ipv4}`;
-        // lista.append(newLI);
-    }, 5000);
-});
-let connectedUsers = [];
 function data_function(data) {
-    // connectedUsers.push(data.id);
-    // console.log(`this is your fetched data`);
-    // console.log(typeof data);
-    // let exists = false;
-    do {
-        connectedUsers.push(data.id);
-        console.log(connectedUsers);
-    } while (!Object.values(data).includes(data.id));
+    const h1 = document.querySelector("h1");
+    const lista = document.querySelector("#lista");
+    const li = lista.querySelectorAll("li");
+    let match = false;
 
-    // console.log(connectedUsers);
-    // connectedUsers.push(data.id);
-    // // Object.values(data).includes(data.id);
-    // console.log(Object.values(data));
-    // console.log(Object.values(data).indexOf(connectedUsers));
-    // console.log(data.id);
-    // console.log(exists);
+    h1.innerText = `Clients connected: ${data.clients}`;
+    for (const l of li) {
+        if (l.classList.contains(data.id)) {
+            match = true;
+            break;
+        }
+    }
 
-    // if (!connectedUsers.includes(data.id)) {
-    //     connectedUsers.push(data.id);
-    //     console.log(connectedUsers);
-    // }
-    // connectedUsers.push(data.id);
-    // let isConnected = false;
-    // console.log(connectedUsers);
-
-    // if (data.id != connectedUsers[0]) {
-    //     isConnected = false;
-    // } else {
-    //     isConnected = true;
-    // }
-    // if ((isConnected = false)) {
-    //     const newLI = document.createElement("LI");
-    //     newLI.innerText = `${data.id} - ${data.ipv4}`;
-    //     lista.append(newLI);
-    // }
+    if (match) {
+        console.log(`Element already exists!`);
+    } else {
+        console.log("Add element...");
+        const newLI = document.createElement("li");
+        newLI.classList.add(data.id);
+        newLI.innerText = `${data.id} - ${data.ipv4}`;
+        lista.append(newLI);
+    }
 }

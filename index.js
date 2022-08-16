@@ -1,4 +1,3 @@
-import { read } from "fs";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
@@ -10,65 +9,50 @@ app.use(cors());
 const wol = require("wol");
 const connections = {};
 const fs = require("fs");
-// const http = require("http");
-// const hostname = "127.0.0.1";
-// const port = 3000;
+
 const path = require("path");
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-// const bodyParser = require("body-parser");
+
 import WebSocket, { WebSocketServer } from "ws";
 const wss = new WebSocketServer({ port: 8080, clientTracking: true });
 const userData = {
-    // id: { ipv4: {} },
     id: {},
     ipv4: {},
+    clients: {},
 };
 
 // EXPRESS!
-
-// view engine setup
-
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "html");
-// app.use((req, res, next) => {
-//     res.setHeader("Access-Control-Allow-Origin", ["*"]);
-//     res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
-//     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-//     next();
-// });
-
+// Static files
+app.use(express.static(path.join(__dirname, "views")));
 app.get("/data", (req, res) => {
-    console.log(userData);
     res.send(JSON.stringify(userData));
 });
 app.get("/", (req, res) => {
-    res.sendFile(`${__dirname}/views/index.html`);
+    res.sendFile(`index.html`);
 });
 
 app.listen(3000, function () {
-    console.log(`Server running at localhost:3000`);
+    console.log(`Server running at http://localhost:3000`);
 });
 
 // WEBSOCKET!
-
 wss.on("connection", (ws, req) => {
-    // userData.id.ipv4 = req.socket.remoteAddress.slice(7);
     userData.ipv4 = req.socket.remoteAddress.slice(7);
     userData.id = uuidv4();
     connections[userData.id] = ws;
-
+    userData.clients = wss.clients.size;
     console.log(
-        // `Client ${userData.id} - ${userData.id.ipv4} connected! Currently ${wss.clients.size} users online!`
-        `Client ${userData.id} - ${userData.ipv4} connected! Currently ${wss.clients.size} users online!`
+        `Client ${userData.id} - ${userData.ipv4} connected! ${userData.clients}`
     );
 
     ws.on("close", function disconnect() {
+        userData.clients -= 1;
         console.log(
-            `A client has disconnected! Currently ${wss.clients.size} users online!`
+            `A client has disconnected! Currently ${userData.clients} users online!`
         );
     });
 });

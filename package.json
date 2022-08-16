@@ -1,7 +1,6 @@
 {
   "name": "provaproiect",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,5 +16,15 @@
     "wol": "^1.0.7",
     "ws": "^8.8.1"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RunyRP/cluster-node-control.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RunyRP/cluster-node-control/issues"
+  },
+  "homepage": "https://github.com/RunyRP/cluster-node-control#readme",
+  "description": ""
 }
