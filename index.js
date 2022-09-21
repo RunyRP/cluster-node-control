@@ -21,19 +21,20 @@ const __dirname = dirname(__filename);
 
 import WebSocket, { WebSocketServer } from "ws";
 const wss = new WebSocketServer({ port: 8080, clientTracking: true });
-
-let clients = 0;
-const userData = [clients];
+const userData = [];
 
 // EXPRESS!
 // Static files
 app.use(express.static(path.join(__dirname, "views")));
+
 app.get("/data", (req, res) => {
     res.send(JSON.stringify(userData));
 });
+
 app.get("/", (req, res) => {
     res.sendFile(`index.html`);
 });
+
 app.listen(3000, function () {
     console.log(`Server running at http://localhost:3000`);
 });
@@ -51,56 +52,67 @@ wss.on("connection", (ws, req) => {
         console.log(user.mac);
         user.ipv4 = req.socket.remoteAddress.slice(7);
         user.id = uuidv4();
-        userData[0] = wss.clients.size;
+        ws.id = user.id;
         userData.push(user);
+        console.log(
+            `A client has connected! currently ${userData.length} users online!`
+        );
         console.log(userData);
     });
     ws.on("close", function disconnect() {
-        userData.clients -= 1;
+        if (!userData.includes(ws.id)) {
+            console.log("Nope!");
+            const index = userData.findIndex((object) => {
+                return object.id === ws.id;
+            });
+            userData.splice(index, 1);
+            console.log(index);
+        }
         console.log(
-            `A client has disconnected! Currently ${userData.clients} users online!`
+            `A client has disconnected! Currently ${userData.length} users online!`
         );
+        console.log(userData);
     });
 });
 
-const objTest = {
-    id: "something",
-    ip: "34",
-    action: "wakeup",
-};
-const action = objTest.action;
-let postFetchTime = 5000;
-switch (action) {
-    case "shutdown":
-        setTimeout(() => {
-            try {
-                fetch("http://192.168.0.228:4000/shutdown", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }).then((response) => {
-                    console.log("sos!");
-                });
-            } catch (e) {
-                console.log(e);
-            }
-        }, postFetchTime);
-        break;
-    case "wakeup":
-        setTimeout(() => {
-            try {
-                fetch("http://192.168.0.228:4000/wakeup", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }).then((response) => {
-                    console.log("sos!");
-                });
-            } catch (e) {
-                console.log(e);
-            }
-        }, postFetchTime);
-        break;
-}
+// const objTest = {
+//     id: "something",
+//     ip: "34",
+//     action: "wakeup",
+// };
+// const action = objTest.action;
+// let postFetchTime = 5000;
+// switch (action) {
+//     case "shutdown":
+//         setTimeout(() => {
+//             try {
+//                 fetch("http://192.168.0.228:4000/shutdown", {
+//                     method: "POST",
+//                     headers: {
+//                         "Content-Type": "application/json",
+//                     },
+//                 }).then((response) => {
+//                     console.log("sos!");
+//                 });
+//             } catch (e) {
+//                 console.log(e);
+//             }
+//         }, postFetchTime);
+//         break;
+//     case "wakeup":
+//         setTimeout(() => {
+//             try {
+//                 fetch("http://192.168.0.228:4000/wakeup", {
+//                     method: "POST",
+//                     headers: {
+//                         "Content-Type": "application/json",
+//                     },
+//                 }).then((response) => {
+//                     console.log("sos!");
+//                 });
+//             } catch (e) {
+//                 console.log(e);
+//             }
+//         }, postFetchTime);
+//         break;
+// }
