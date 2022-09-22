@@ -26,6 +26,7 @@ const userData = [];
 // EXPRESS!
 // Static files
 app.use(express.static(path.join(__dirname, "views")));
+app.use(express.json());
 
 app.get("/data", (req, res) => {
     res.send(JSON.stringify(userData));
@@ -33,6 +34,14 @@ app.get("/data", (req, res) => {
 
 app.get("/", (req, res) => {
     res.sendFile(`index.html`);
+});
+
+let clientReq = {};
+
+app.post("/btnaction", (req, res) => {
+    console.log("Receiving data!");
+    clientReq = req.body;
+    executeAction();
 });
 
 app.listen(3000, function () {
@@ -49,7 +58,7 @@ wss.on("connection", (ws, req) => {
             mac: "",
         };
         user.mac = event.toString();
-        console.log(user.mac);
+        // console.log(user.mac);
         user.ipv4 = req.socket.remoteAddress.slice(7);
         user.id = uuidv4();
         ws.id = user.id;
@@ -59,14 +68,13 @@ wss.on("connection", (ws, req) => {
         );
         console.log(userData);
     });
+
     ws.on("close", function disconnect() {
         if (!userData.includes(ws.id)) {
-            console.log("Nope!");
             const index = userData.findIndex((object) => {
                 return object.id === ws.id;
             });
             userData.splice(index, 1);
-            console.log(index);
         }
         console.log(
             `A client has disconnected! Currently ${userData.length} users online!`
@@ -75,44 +83,55 @@ wss.on("connection", (ws, req) => {
     });
 });
 
-// const objTest = {
-//     id: "something",
-//     ip: "34",
-//     action: "wakeup",
-// };
-// const action = objTest.action;
-// let postFetchTime = 5000;
-// switch (action) {
-//     case "shutdown":
-//         setTimeout(() => {
-//             try {
-//                 fetch("http://192.168.0.228:4000/shutdown", {
-//                     method: "POST",
-//                     headers: {
-//                         "Content-Type": "application/json",
-//                     },
-//                 }).then((response) => {
-//                     console.log("sos!");
-//                 });
-//             } catch (e) {
-//                 console.log(e);
-//             }
-//         }, postFetchTime);
-//         break;
-//     case "wakeup":
-//         setTimeout(() => {
-//             try {
-//                 fetch("http://192.168.0.228:4000/wakeup", {
-//                     method: "POST",
-//                     headers: {
-//                         "Content-Type": "application/json",
-//                     },
-//                 }).then((response) => {
-//                     console.log("sos!");
-//                 });
-//             } catch (e) {
-//                 console.log(e);
-//             }
-//         }, postFetchTime);
-//         break;
-// }
+function executeAction() {
+    const action = clientReq.action;
+    let postFetchTime = 5000;
+    switch (action) {
+        case "shutdown":
+            setTimeout(() => {
+                try {
+                    fetch(`http://${clientReq.ipv4}:4000/shutdown`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    });
+                } catch (e) {
+                    console.log(e);
+                }
+            }, postFetchTime);
+            break;
+
+        case "wakeup":
+            setTimeout(() => {
+                try {
+                    fetch(`http://192.168.0.179:4000/wakeup`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(clientReq),
+                    });
+                } catch (e) {
+                    console.log(e);
+                }
+            }, postFetchTime);
+            break;
+
+        case "disconnect":
+            setTimeout(() => {
+                try {
+                    fetch(`http://${clientReq.ipv4}:4000/disconnect`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(clientReq),
+                    });
+                } catch (e) {
+                    console.log(e);
+                }
+            }, postFetchTime);
+            break;
+    }
+}
